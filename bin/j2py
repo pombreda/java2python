@@ -17,8 +17,7 @@ from java2python.compiler import Module, buildAST, transformAST
 from java2python.config import Config
 from java2python.lib import escapes
 
-
-version = '0.5.1'
+version = '0.5.2'
 
 
 def logLevel(value):
@@ -87,7 +86,6 @@ def runTransform(options):
     """ Compile the indicated java source with the given options. """
     timed = defaultdict(time)
     timed['overall']
-
     filein = fileout = filedefault = '-'
     if options.inputfile and not isinstance(options.inputfile, file):
         filein = options.inputfile
@@ -116,11 +114,12 @@ def runTransform(options):
         return code
 
     timed['comp']
-    try:
-        tree = buildAST(source)
-    except (Exception, ), exc:
-        exception('exception while parsing')
-        return 1
+    tree = buildAST(source)
+    #try:
+    #    tree = buildAST(source)
+    #except (Exception, ), exc:
+    #    exception('exception while parsing')
+    #    return 1
     timed['comp_finish']
 
     config = Config(configs)
@@ -130,6 +129,7 @@ def runTransform(options):
 
     timed['visit']
     module = Module(config)
+    module.set_global_options(options)
     module.sourceFilename = path.abspath(filein) if filein != '-' else None
     module.name = path.splitext(path.basename(filein))[0] if filein != '-' else '<stdin>'
     module.walk(tree)
@@ -161,7 +161,7 @@ def runTransform(options):
         module.name = path.splitext(filein)[0] if filein != '-' else '<stdin>'
         print >> output, source
 
-    if not options.skipcompile:
+    if not options.skipcompile and not options.rusthon:
         try:
             compile(source, '<string>', 'exec')
         except (SyntaxError, ), ex:
@@ -243,6 +243,7 @@ def configScript(argv):
         help='Print lexer tokens to stderr.',
         default=False, action='store_true')
     add('-v', '--version', action='version', version='%(prog)s ' + version)
+    add('--rusthon', help='output rusthon code', action='store_true')
 
     ns = parser.parse_args(argv)
     if ns.inputfile == '-':

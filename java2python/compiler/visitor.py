@@ -20,6 +20,7 @@ from re import compile as recompile, sub as resub
 from java2python.lang import tokens
 from java2python.lib import FS
 
+OPTIONS = None
 
 class Memo(object):
     """ Memo -> AST walking luggage. """
@@ -32,6 +33,12 @@ class Base(object):
     """ Base ->  Parent class for AST visitors. """
 
     commentSubs = map(recompile, ['^\s*/(\*)+', '(\*)+/\s*$', '^\s*//'])
+
+    def set_global_options(self, cfg):
+        global OPTIONS
+        OPTIONS = cfg
+        import java2python.compiler.template
+        java2python.compiler.template.OPTIONS = cfg
 
     def accept(self, node, memo):
         """ Accept a node, possibly creating a child visitor. """
@@ -139,7 +146,6 @@ class TypeAcceptor(object):
 
 class Module(TypeAcceptor, Base):
     """ Module -> accepts AST branches for module-level objects. """
-
     def makeAcceptHandledDecl(part):
         """ Creates an accept function for a decl to be processed by a handler. """
         def acceptDecl(self, node, memo):
@@ -169,6 +175,7 @@ class ModifiersAcceptor(object):
 
     def nodesToAnnos(self, branch, memo):
         """ Convert the annotations in the given branch to a decorator. """
+        raise RuntimeError('nodesToAnnos')
         name = branch.firstChildOfType(tokens.IDENT).text
         init = branch.firstChildOfType(tokens.ANNOTATION_INIT_BLOCK)
         if not init:
@@ -196,7 +203,10 @@ class ModifiersAcceptor(object):
         if root.parentType in tokens.methodTypes:
             self.modifiers.extend(n.text for n in root.children)
             if self.isStatic and self.parameters:
-                self.parameters[0]['name'] = 'cls'
+                name = 'cls'
+                #if OPTIONS and OPTIONS.rusthon:
+                #    name = 'cls:self'
+                self.parameters[0]['name'] = name
         self.modifiers.append(branch.text)
 
 

@@ -20,6 +20,7 @@ from itertools import chain, ifilter, imap
 from java2python.lang import tokens
 from java2python.lib import FS, colors
 
+OPTIONS = None
 
 class Factory(object):
     """ Factory -> creates pre-configured callables for new block instances.
@@ -162,6 +163,8 @@ class Base(object):
                     return name
                 if name in method.variables:
                     return name
+                if OPTIONS and OPTIONS.rusthon:
+                    raise RuntimeError('ooookkk')
                 return ('cls' if method.isStatic else 'self') + '.' + name
         return name
 
@@ -480,7 +483,10 @@ class Method(ClassMethodSharedMixin, Base):
         def formatParam(p):
             if 'default' in p:
                 return '{0}={1}'.format(p['name'], p['default'])
-            return p['name']
+            if OPTIONS and OPTIONS.rusthon:
+                return '%s:%s' %(p['name'],p['type'])
+            else:
+                return p['name']
         params = ', '.join(formatParam(param) for param in self.iterParams())
         yield 'def {0}({1}):'.format(self.name, params)
 

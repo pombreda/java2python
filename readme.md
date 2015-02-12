@@ -1,6 +1,6 @@
 ## java2python
 
-Simple but effective tool to translate Java source code into Python.
+Simple but effective tool to translate Java source code into Python and Rusthon.
 
 
 The java2python package can translate any syntactically valid Java source code
@@ -30,12 +30,14 @@ class HelloWorld {
 }
 ```
 
-Next we run our program:
-
-
+Convert Java Program To Python
+-----------------------------
 ```bash
 $ j2py HelloWorld.java
 ```
+
+Python Output
+-------------
 ```python
 #!/usr/bin/env python
 """ generated source for module HelloWorld """
@@ -52,6 +54,12 @@ class HelloWorld(object):
 if __name__ == '__main__':
     import sys
     HelloWorld.main(sys.argv)
+```
+
+Convert to Rusthon
+--------------
+```bash
+$ j2py --rusthon HelloWorld.java
 ```
 
 
