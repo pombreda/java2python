@@ -484,7 +484,9 @@ class Method(ClassMethodSharedMixin, Base):
             if 'default' in p:
                 return '{0}={1}'.format(p['name'], p['default'])
             if OPTIONS and OPTIONS.rusthon:
-                return '%s:%s' %(p['name'],p['type'])
+                T = p['type']
+                if T=='str': T = 'string'
+                return '%s:%s' %(p['name'],T)
             else:
                 return p['name']
         params = ', '.join(formatParam(param) for param in self.iterParams())
