@@ -42,6 +42,7 @@ class Base(object):
 
     def accept(self, node, memo):
         """ Accept a node, possibly creating a child visitor. """
+        if node.token is None: return None  ## bug?
         tokType = tokens.map.get(node.token.type)
         missing = lambda node, memo:self
         call = getattr(self, 'accept{0}'.format(tokens.title(tokType)), missing)
@@ -51,6 +52,9 @@ class Base(object):
 
     def insertComments(self, tmpl, tree, index, memo):
         """ Add comments to the template from tokens in the tree. """
+        if not hasattr(tree, 'parser'):
+            ## see: lang/selector.py class Type, method __call__
+            return
         prefix = self.config.last('commentPrefix', '# ')
         cache, parser, comTypes = memo.comments, tree.parser, tokens.commentTypes
         comNew = lambda t:t.type in comTypes and (t.index not in cache)
@@ -93,12 +97,13 @@ class Base(object):
                 visitor.walk(child, memo)
                 comIns(visitor, child, child.tokenStopIndex, memo)
         comIns(self, tree, tree.tokenStopIndex, memo)
-        if tree.isJavaSource:
-            comIns(self, tree, len(tree.parser.input.tokens), memo)
-        # fixme: we're calling the mutators far too frequently instead
-        # of only once per object after its walk is finished.
-        for handler in self.configHandlers('PostWalk', suffix='Mutators'):
-            handler(self)
+        if hasattr(tree, 'isJavaSource'): ## else CommonNodeError
+            if tree.isJavaSource:
+                comIns(self, tree, len(tree.parser.input.tokens), memo)
+            # fixme: we're calling the mutators far too frequently instead
+            # of only once per object after its walk is finished.
+            for handler in self.configHandlers('PostWalk', suffix='Mutators'):
+                handler(self)
 
     def zipWalk(self, nodes, visitors, memo):
         """ Walk the given nodes zipped with the given visitors. """

@@ -164,7 +164,7 @@ class Base(object):
                 if name in method.variables:
                     return name
                 if OPTIONS and OPTIONS.rusthon:
-                    raise RuntimeError('ooookkk')
+                    pass
                 return ('cls' if method.isStatic else 'self') + '.' + name
         return name
 
